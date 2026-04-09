@@ -21,7 +21,9 @@
   },
   "homepage": "https://github.com/douaalahmar-sudo/AR-Bati#readme",
   "dependencies": {
-    "express": "^5.2.1"
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1",
+    "mongoose": "^9.4.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
