@@ -3,6 +3,7 @@ import bcryptjs from 'bcryptjs';
 import { errorHandler } from '../utils/error.js';
 import jwt from 'jsonwebtoken';
 
+// Standard Email/Password Signup
 export const signup = async (req, res, next) => {
   const { username, email, password } = req.body;
   const hashedPassword = bcryptjs.hashSync(password, 10);
@@ -16,6 +17,7 @@ export const signup = async (req, res, next) => {
   }
 };
 
+// Standard Email/Password Signin
 export const signin = async (req, res, next) => {
   const { email, password } = req.body;
   try {
@@ -25,11 +27,51 @@ export const signin = async (req, res, next) => {
     }
     const validPassword = bcryptjs.compareSync(password, validUser.password);
     if (!validPassword) return next(errorHandler(401, 'Wrong credentials!'));
-    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET)
-    const { password: pass, ...rest } = validUser._doc; // bsh manb3thouch l password f response
+    
+    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
+    const { password: pass, ...rest } = validUser._doc; // Hidden password in response
+    
     res.cookie('access_token', token, { httpOnly: true })
-    .status(200)
-    .json(rest);
+      .status(200)
+      .json(rest);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Google OAuth Login Logic
+export const google = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    
+    if (user) {
+      // If user exists, just log them in
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      const { password, ...rest } = user._doc;
+      res.cookie('access_token', token, { httpOnly: true })
+        .status(200)
+        .json(rest);
+    } else {
+      // If user doesn't exist, create a new one using Google data
+      const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+      const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
+      
+      const newUser = new User({
+        // Fixed: Added space in split(" ") to properly join First and Last names
+        username: req.body.name.split(" ").join("").toLowerCase() + Math.random().toString(36).slice(-4),
+        email: req.body.email,
+        password: hashedPassword,
+        avatar: req.body.photo 
+      });
+      
+      await newUser.save();
+      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+      const { password, ...rest } = newUser._doc;
+      
+      res.cookie('access_token', token, { httpOnly: true })
+        .status(200)
+        .json(rest);
+    }
   } catch (error) {
     next(error);
   }
