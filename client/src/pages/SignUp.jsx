@@ -104,7 +104,6 @@ export default function SignUp() {
         </Link>
       </div>
       
-      {/* Show error message if something goes wrong */}
       {error && <p className='text-red-500 mt-5 text-center font-semibold'>{error}</p>}
     </div>
   );
