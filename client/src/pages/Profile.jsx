@@ -6,7 +6,10 @@ import {
   updateUserFailure, 
   deleteUserStart, 
   deleteUserSuccess, 
-  deleteUserFailure 
+  deleteUserFailure, 
+  signOutUserStart,    
+  signOutUserSuccess,
+  signOutUserFailure
 } from "../redux/user/userSlice";
 
 export default function Profile() {
@@ -26,18 +29,16 @@ export default function Profile() {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onloadend = () => {
-        setFormData({ ...formData, avatar: reader.result }); // Saves Base64 string
+        setFormData({ ...formData, avatar: reader.result }); 
         setImageLoading(false);
       };
     }
   }, [file]);
 
-  // 2. Handles the Text Inputs (Username, Email, Password)
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  // 3. Handles the Update Button Click
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -47,7 +48,7 @@ export default function Profile() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData), // Sends everything to the backend
+        body: JSON.stringify(formData),
       });
       const data = await res.json();
       
@@ -57,7 +58,7 @@ export default function Profile() {
       }
       
       dispatch(updateUserSuccess(data));
-      setUpdateSuccess(true); // Show success message
+      setUpdateSuccess(true);
     } catch (error) {
       dispatch(updateUserFailure(error.message));
     }
@@ -82,6 +83,21 @@ export default function Profile() {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      dispatch(signOutUserStart());
+      const res = await fetch('/api/auth/signout');
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(signOutUserFailure(data.message));
+        return;
+      }
+      dispatch(signOutUserSuccess(data));
+    } catch (error) {
+      dispatch(signOutUserFailure(error.message));
+    }
+  };
+
   return (
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-3xl font-bold text-center my-7 uppercase tracking-wider">
@@ -100,7 +116,7 @@ export default function Profile() {
         <div className="relative self-center group">
           <img
             onClick={() => !imageLoading && fileRef.current.click()}
-            src={formData.avatar || currentUser.avatar}
+            src={formData.avatar || currentUser?.avatar}
             alt="profile"
             className={`rounded-full h-24 w-24 object-cover cursor-pointer mt-2 border-2 border-[#eee27d] transition-all duration-300 ${imageLoading ? 'opacity-40' : 'hover:opacity-90'}`}
           />
@@ -116,7 +132,7 @@ export default function Profile() {
           type="text"
           placeholder="Username"
           id="username"
-          defaultValue={currentUser.username}
+          defaultValue={currentUser?.username}
           onChange={handleChange}
           className="border border-slate-300 p-3 rounded-lg focus:outline-none focus:border-black"
         />
@@ -125,7 +141,7 @@ export default function Profile() {
           type="email"
           placeholder="Email"
           id="email"
-          defaultValue={currentUser.email}
+          defaultValue={currentUser?.email}
           onChange={handleChange}
           className="border border-slate-300 p-3 rounded-lg focus:outline-none focus:border-black"
         />
@@ -144,18 +160,11 @@ export default function Profile() {
         >
           {userLoading ? 'Updating...' : 'Update'}
         </button>
-        
-        <button 
-          type="button" 
-          className="bg-[#eee27d] text-black p-3 rounded-lg uppercase font-bold transition-all duration-300 ease-in-out hover:opacity-95 hover:-translate-y-1 hover:shadow-xl"
-        >
-          New Project
-        </button>
       </form>
 
       <div className="flex justify-between mt-5 font-medium">
         <span onClick={handleDeleteUser} className="text-red-700 cursor-pointer hover:underline">Delete Account</span>
-        <span className="text-red-700 cursor-pointer hover:underline">Sign Out</span>
+        <span onClick={handleSignOut} className="text-red-700 cursor-pointer hover:underline">Sign Out</span>
       </div>
 
       {updateSuccess && (
