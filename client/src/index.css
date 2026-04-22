@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
-
 body {
-  background-color: #f1f5f9; /* This fits the Slate/Gold theme best */
-  color: #334155; /* Slate-700 for better text readability */
+  font-family: 'Inter', sans-serif;
+  @apply bg-slate-100 text-slate-900 flex flex-col min-h-screen;
 }
