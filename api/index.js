@@ -1,38 +1,46 @@
 import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first'); 
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+
+// Route Imports
 import userRouter from "./routes/user.route.js";
 import authrouter from "./routes/auth.route.js";
 import serviceRouter from "./routes/service.route.js";
 import contactRouter from './routes/contact.route.js';
-import cookieParser from "cookie-parser";
-
+import projectRouter from './routes/project.route.js';
 
 dotenv.config();
 
 mongoose.connect(process.env.MONGO)
-  .then(() => console.log('Connected to MongoDB!'))
-  .catch((err) => console.log(err));
+  .then(() => {
+    console.log('✅✅✅ DATABASE CONNECTED! AR-BÂTI IS LIVE ✅✅✅');
+  })
+  .catch((err) => {
+    console.error('❌ Connection Error:', err.message);
+  });
 
 const app = express(); 
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(cookieParser());
+// --- CRITICAL MIDDLEWARES ---
+app.use(express.json());    // Parses incoming JSON requests
+app.use(cookieParser());    // Allows server to read/clear cookies for Sign Out
 
-// Routes
-app.use('/api/user', userRouter);
-app.use('/api/auth', authrouter);
-app.use('/api/service', serviceRouter);
-app.use('/api/contact', contactRouter);
+// --- ROUTE REGISTRATION ---
+app.use("/api/user", userRouter);
+app.use("/api/auth", authrouter);
+app.use("/api/service", serviceRouter);
+app.use("/api/contact", contactRouter);
+app.use("/api/project", projectRouter);
 
-// Error Handling Middleware
+// --- ERROR HANDLING MIDDLEWARE ---
 app.use((err, req, res, next) => {
-  const statusCode = err.statusCode || 500; 
-  const message = err.message || "Internal Server Error";
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal Server Error';
   return res.status(statusCode).json({
     success: false,
     statusCode,
@@ -41,5 +49,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+  console.log('🚀 Server is running on port 3000');
 });

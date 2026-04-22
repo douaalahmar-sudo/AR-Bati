@@ -1,31 +1,36 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema(
+  {
     username: {
-        type: String,
-        required: true,
-        unique: true,  // el usernames unique
+      type: String,
+      required: true,
+      unique: true,
     },
     email: {
-        type: String,
-        required: true,
-        unique: true,  // el emails lzm unique
+      type: String,
+      required: true,
+      unique: true,
     },
     password: {
-        type: String,
-        required: true, 
+      type: String,
+      required: true,
     },
     avatar: {
-        type: String,
-        default:"https://imgs.search.brave.com/lL90r4r89CxNdhFFAGQqRT3PYO6GF-xdyIAu2M4g4-Q/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/aXByY2VudGVyLmdv/di9pbWFnZS1yZXBv/c2l0b3J5L2JsYW5r/LXByb2ZpbGUtcGlj/dHVyZS5wbmcvQEBp/bWFnZXMvaW1hZ2Uu/cG5n"
+      type: String,
+      default:
+        'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
     },
-    /*role: {
-  type: String,
-  enum: ["admin", "client", "contractor"],
-  default: "client"
-},*/
-}, { timestamps: true }); // yaml createdAt w updatedAt automatiquement
+    // Adding the role field to distinguish between Admin, Client, and Contractor
+    role: {
+      type: String,
+      enum: ['client', 'admin', 'contractor'],
+      default: 'client', // New users are clients by default until promoted
+    },
+  },
+  { timestamps: true }
+);
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model('User', userSchema);
 
 export default User;

@@ -32,7 +32,14 @@ export default function SignIn() {
         return;
       }
       dispatch(signInSuccess(data));
-      navigate('/');
+
+      // Role-based navigation logic added here
+      if (data.role === 'admin') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/');
+      }
+      
     } catch (error) {
       dispatch(signInFailure(error.message));
     }
