@@ -13,6 +13,7 @@ import authrouter from "./routes/auth.route.js";
 import serviceRouter from "./routes/service.route.js";
 import contactRouter from './routes/contact.route.js';
 import projectRouter from './routes/project.route.js';
+import quoteRouter from './routes/quote.route.js';
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use("/api/auth", authrouter);
 app.use("/api/service", serviceRouter);
 app.use("/api/contact", contactRouter);
 app.use("/api/project", projectRouter);
+app.use('/api/quote', quoteRouter);
 
 // --- ERROR HANDLING MIDDLEWARE ---
 app.use((err, req, res, next) => {

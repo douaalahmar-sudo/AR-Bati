@@ -17,7 +17,7 @@ export default function Home() {
         {/* Content */}
         <div className='relative z-10 text-center px-4 max-w-4xl'>
           <h1 className='text-5xl md:text-7xl font-extrabold mb-6 tracking-tight'>
-            Bâtir Votre <span className='text-[#eee27d]'>Vision</span>
+            Build Your <span className='text-[#eee27d]'>Vision</span>
           </h1>
           <p className='text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto'>
             Expertise in construction, renovation and modern architecture in Sousse. 

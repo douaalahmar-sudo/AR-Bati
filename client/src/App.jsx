@@ -13,6 +13,7 @@ import Projects from './pages/Projects';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminRoute from './components/AdminRoute'; // This is the bouncer we just made!
 import CreateProject from './pages/CreateProject';
+import Devis from './pages/Devis';
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/services" element={<Services />} />
         <Route path="/projects" element={<Projects />} />
+       
 
         {/* Regular User Private Routes */}
         <Route element={<PrivateRoute />}>
@@ -34,13 +36,12 @@ export default function App() {
         </Route>
 
         {/* Admin Only Routes - Keep it inside <Routes>! */}
-        <Route element={<AdminRoute />}>
-          <Route path='/admin-dashboard' element={<AdminDashboard />} />
-          <Route path='/create-project' element={<CreateProject />} />
-          {/* Future admin pages go here */}
-        </Route>
-
-        
+        {/* Admin Only Routes */}
+<Route element={<AdminRoute />}>
+  <Route path='/admin-dashboard' element={<AdminDashboard />} />
+  <Route path='/create-project' element={<CreateProject />} />
+</Route>
+<Route path="/devis" element={<Devis />} />
       </Routes>
       <Footer />
     </BrowserRouter>
