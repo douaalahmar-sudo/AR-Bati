@@ -2,16 +2,17 @@ import Project from '../models/project.model.js';
 
 export const createProject = async (req, res, next) => {
   try {
-    const { title, description, image } = req.body;
-    
-    const newProject = new Project({
-      title,
-      description,
-      image,
-    });
+    const project = await Project.create(req.body);
+    return res.status(201).json(project);
+  } catch (error) {
+    next(error);
+  }
+};
 
-    await newProject.save();
-    res.status(201).json(newProject);
+export const getProjects = async (req, res, next) => {
+  try {
+    const projects = await Project.find();
+    return res.status(200).json(projects);
   } catch (error) {
     next(error);
   }

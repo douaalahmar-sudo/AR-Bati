@@ -1,26 +1,96 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 export default function CreateProject() {
+  const { currentUser } = useSelector((state) => state.user);
   const [file, setFile] = useState(null);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    imageUrls: [], // Matches your MongoDB array structure
+  });
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // 1. REAL CLOUDINARY UPLOAD LOGIC
   const handleUploadImage = async () => {
     if (!file) return setError('Please select an image first');
     setUploading(true);
     setError(null);
-    // Cloudinary Logic ... (keep your existing try/catch)
-    setTimeout(() => { setUploading(false); setFormData({...formData, image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e"}); }, 1000); // Dummy for styling test
+
+    const data = new FormData();
+    data.append("file", file);
+    // Use the preset name and cloud name from your Cloudinary settings
+    data.append("upload_preset", "du9ubzqky"); 
+    data.append("cloud_name", "du9ubzqky");
+
+    try {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/du9ubzqky/image/upload`, {
+        method: "POST",
+        body: data,
+      });
+
+      const uploadedImageUrl = await res.json();
+      
+      if (uploadedImageUrl.secure_url) {
+        // This saves the REAL URL into your state
+        setFormData({
+          ...formData,
+          imageUrls: [uploadedImageUrl.secure_url],
+        });
+        setUploading(false);
+      } else {
+        console.error("Cloudinary Error:", uploadedImageUrl);
+        setError("Upload failed. Make sure your preset is set to 'Unsigned'.");
+        setUploading(false);
+      }
+    } catch (err) {
+      setError('Connection to Cloudinary failed');
+      setUploading(false);
+    }
   };
 
+  // 2. SAVE TO MONGODB
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.image) return setError('Please upload an image first');
-    // Database logic ...
-    navigate('/projects');
+    
+    if (formData.imageUrls.length === 0) {
+      return setError('You must verify your image first!');
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/project/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          userRef: currentUser._id, // Now defined via Redux
+          category: 'Construction', 
+          location: 'Sousse',      
+        }),
+      });
+
+      const data = await res.json();
+      setLoading(false);
+
+      if (data.success === false) {
+        setError(data.message);
+        return;
+      }
+
+      alert("Project Published Successfully!");
+      navigate('/projects'); // Redirects to your portfolio
+
+    } catch (err) {
+      setLoading(false);
+      setError("Connection failed. Is the backend running?");
+    }
   };
 
   return (
@@ -60,24 +130,25 @@ export default function CreateProject() {
               >
                 {file ? 'Change Photo' : 'Choose Photo'}
               </label>
-              <span className="text-slate-500 text-[10px] font-bold uppercase truncate max-w-[200px]">
+              <span className="text-slate-500 text-[10px] font-bold uppercase truncate max-w-[150px]">
                 {file ? file.name : "No file selected"}
               </span>
 
               <button 
-                type='button' 
-                onClick={handleUploadImage} 
-                disabled={uploading || !file}
-                className='w-full md:w-auto bg-[#eee27d] text-[#1a1a1a] px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest disabled:opacity-30 shadow-lg'
+                type="button" 
+                onClick={handleUploadImage}
+                disabled={uploading}
+                className='bg-[#eee27d] text-[#1a1a1a] px-6 py-3 rounded-xl uppercase font-black text-[10px] hover:shadow-lg disabled:opacity-50 transition-all'
               >
-                {uploading ? 'Processing...' : 'Confirm Upload'}
+                {uploading ? 'Uploading...' : 'Verify Image'}
               </button>
             </div>
           </div>
 
-          {formData.image && (
+          {/* REAL PREVIEW IMAGE FROM CLOUDINARY */}
+          {formData.imageUrls.length > 0 && (
             <div className="relative overflow-hidden rounded-3xl border-4 border-white shadow-xl">
-              <img src={formData.image} alt='preview' className='w-full h-80 object-cover' />
+              <img src={formData.imageUrls[0]} alt='preview' className='w-full h-80 object-cover' />
               <div className="absolute top-4 left-4 bg-green-500 text-white text-[9px] px-4 py-1.5 rounded-full font-black uppercase tracking-tighter shadow-lg">
                 Upload Verified
               </div>
@@ -97,9 +168,10 @@ export default function CreateProject() {
 
           <button 
             type='submit' 
-            className='bg-[#1a1a1a] text-white p-6 rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-[#eee27d] hover:text-[#1a1a1a] hover:shadow-2xl active:scale-95 transition-all mt-4 text-xs'
+            disabled={loading || uploading}
+            className='bg-[#1a1a1a] text-white p-6 rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-[#eee27d] hover:text-[#1a1a1a] hover:shadow-2xl active:scale-95 transition-all mt-4 text-xs disabled:opacity-50'
           >
-            Publish Project to Portfolio
+            {loading ? 'Publishing...' : 'Publish Project to Portfolio'}
           </button>
           
           {error && <p className='text-red-500 text-[10px] font-black uppercase text-center tracking-widest'>{error}</p>}

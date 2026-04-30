@@ -14,6 +14,7 @@ import serviceRouter from "./routes/service.route.js";
 import contactRouter from './routes/contact.route.js';
 import projectRouter from './routes/project.route.js';
 import quoteRouter from './routes/quote.route.js';
+import inquiryRouter from './routes/inquiry.route.js';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use("/api/service", serviceRouter);
 app.use("/api/contact", contactRouter);
 app.use("/api/project", projectRouter);
 app.use('/api/quote', quoteRouter);
+app.use('/api/inquiry', inquiryRouter);
 
 // --- ERROR HANDLING MIDDLEWARE ---
 app.use((err, req, res, next) => {

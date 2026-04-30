@@ -2,20 +2,49 @@ import React, { useState } from 'react';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
 
 export default function Contact() {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  // Initialize with type: 'contact' to match your backend model
+  const [formData, setFormData] = useState({ 
+    type: 'contact', 
+    name: '', 
+    email: '', 
+    comments: '' // Changed 'message' to 'comments' to match the Inquiry model
+  });
   const [status, setStatus] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+// ... (imports remain the same)
+// Inside handleSubmit, change only the fetch block:
+
+const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('sending');
-    // Your actual API call would go here
-    setTimeout(() => setStatus('success'), 1500); 
-  };
+    
+    try {
+      const res = await fetch('/api/inquiry/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          status: 'pending' // Ensures it shows as Pending in the table
+        }),
+      });
 
+      const data = await res.json();
+
+      if (data.success) {
+        setStatus('success');
+        setFormData({ type: 'contact', name: '', email: '', comments: '' });
+      } else {
+        setStatus('error');
+      }
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      setStatus('error');
+    }
+  };
   return (
     <div className='bg-[#f5f5f5] min-h-screen py-20 px-4'>
       <div className='max-w-6xl mx-auto'>
@@ -66,6 +95,7 @@ export default function Contact() {
                   <input 
                     type='text' 
                     id='name' 
+                    value={formData.name}
                     placeholder='John Doe' 
                     className='p-4 rounded-xl border-2 border-slate-100 focus:border-[#eee27d] transition-all outline-none bg-slate-50 text-[#1a1a1a] font-medium' 
                     onChange={handleChange} 
@@ -77,6 +107,7 @@ export default function Contact() {
                   <input 
                     type='email' 
                     id='email' 
+                    value={formData.email}
                     placeholder='john@example.com' 
                     className='p-4 rounded-xl border-2 border-slate-100 focus:border-[#eee27d] transition-all outline-none bg-slate-50 text-[#1a1a1a] font-medium' 
                     onChange={handleChange} 
@@ -87,7 +118,8 @@ export default function Contact() {
               <div className='flex flex-col gap-2'>
                 <label className='text-[11px] font-black uppercase ml-1 text-[#1a1a1a] tracking-wider'>Your Message</label>
                 <textarea 
-                  id='message' 
+                  id='comments' // Updated ID to 'comments' to match the state and backend model
+                  value={formData.comments}
                   placeholder='Describe your project...' 
                   rows='5' 
                   className='p-4 rounded-xl border-2 border-slate-100 focus:border-[#eee27d] transition-all outline-none bg-slate-50 text-[#1a1a1a] font-medium resize-none' 
@@ -95,10 +127,15 @@ export default function Contact() {
                   required
                 ></textarea>
               </div>
-              <button className='bg-[#1a1a1a] text-white p-5 rounded-xl uppercase font-black tracking-widest hover:bg-[#eee27d] hover:text-[#1a1a1a] transition-all shadow-lg active:scale-95'>
+              <button 
+                type='submit'
+                disabled={status === 'sending'}
+                className='bg-[#1a1a1a] text-white p-5 rounded-xl uppercase font-black tracking-widest hover:bg-[#eee27d] hover:text-[#1a1a1a] transition-all shadow-lg active:scale-95 disabled:bg-slate-400'
+              >
                 {status === 'sending' ? 'Sending...' : 'Send Message'}
               </button>
               {status === 'success' && <div className='bg-green-100 text-green-800 p-4 rounded-xl text-center font-bold'>Message sent successfully!</div>}
+              {status === 'error' && <div className='bg-red-100 text-red-800 p-4 rounded-xl text-center font-bold'>Something went wrong. Please try again.</div>}
             </form>
           </div>
         </div>

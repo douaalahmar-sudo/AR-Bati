@@ -1,138 +1,83 @@
-import React, { useEffect, useState } from 'react';
-import { FaProjectDiagram, FaEnvelope, FaPlusCircle, FaTrash } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
-export default function AdminDashboard() {
-  const [quotes, setQuotes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+export default function AdminInquiries() {
+  const [inquiries, setInquiries] = useState([]);
 
-  // 1. Fetch real quotes from the backend
-  useEffect(() => {
-    const fetchQuotes = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch('/api/quote/get');
-        const data = await res.json();
-        if (data.success === false) {
-          setError(true);
-          setLoading(false);
-          return;
-        }
-        setQuotes(data);
-        setLoading(false);
-      } catch (err) {
-        setError(true);
-        setLoading(false);
-      }
-    };
-    fetchQuotes();
-  }, []);
-
-
-const handleDeleteQuote = async (quoteId) => {
-    if (!window.confirm("Are you sure you want to delete this request?")) return;
-
+  const fetchInquiries = async () => {
     try {
-      const res = await fetch(`/api/quote/delete/${quoteId}`, {
-        method: 'DELETE',
-      });
+      const res = await fetch(`/api/inquiry/all?t=${new Date().getTime()}`);
       const data = await res.json();
-      if (data.success === false) return;
-
-      // This updates your table instantly
-      setQuotes((prev) => prev.filter((quote) => quote._id !== quoteId));
+      setInquiries(data);
     } catch (error) {
-      console.log(error.message);
+      console.error("Error fetching inquiries:", error);
     }
   };
+
+  useEffect(() => {
+    fetchInquiries();
+  }, []);
+
   return (
-    <div className='p-6 max-w-7xl mx-auto'>
-      <h1 className='text-3xl font-black uppercase tracking-tighter mb-8'>
-        Admin <span className='text-[#eee27d]'>Control Center</span>
-      </h1>
-
-      {/* STAT CARDS - Now Dynamic */}
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-10'>
-        <div className='bg-white p-6 rounded-xl shadow-sm border-l-4 border-[#eee27d]'>
-          <div className='flex justify-between items-center'>
-            <div>
-              <p className='text-xs font-bold text-slate-400 uppercase tracking-widest'>Total Projects</p>
-              <h2 className='text-3xl font-black mt-1'>12</h2> {/* Static for now */}
-            </div>
-            <FaProjectDiagram className='text-slate-200 text-3xl' />
-          </div>
-        </div>
-
-        <div className='bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-400'>
-          <div className='flex justify-between items-center'>
-            <div>
-              <p className='text-xs font-bold text-slate-400 uppercase tracking-widest'>New Inquiries</p>
-              <h2 className='text-3xl font-black mt-1'>{quotes.length}</h2>
-            </div>
-            <FaEnvelope className='text-slate-200 text-3xl' />
-          </div>
-        </div>
-
-        <div className='bg-[#1a1a1a] p-6 rounded-xl shadow-lg flex items-center justify-center'>
-          <Link to='/create-project' className='flex items-center gap-3 text-[#eee27d] font-black uppercase text-sm tracking-widest hover:scale-105 transition-transform'>
-            <FaPlusCircle /> Add New Project
-          </Link>
-        </div>
-      </div>
-
-      {/* QUOTES TABLE - The "Consultation" Area */}
-      <div className='bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden'>
-        <div className='p-6 border-b border-slate-50 bg-slate-50/50'>
-          <h3 className='font-black uppercase text-sm tracking-widest text-slate-500'>Recent Quote Requests</h3>
-        </div>
-        
-        <div className='overflow-x-auto'>
-          <table className='w-full text-left border-collapse'>
-            <thead>
-              <tr className='text-[10px] uppercase tracking-widest text-slate-400 bg-slate-50/30'>
-                <th className='p-4 font-black'>Client</th>
-                <th className='p-4 font-black'>Project Type</th>
-                <th className='p-4 font-black'>Location</th>
-                <th className='p-4 font-black'>Budget (TND)</th>
-                <th className='p-4 font-black text-right'>Action</th>
+    <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-7xl mx-auto mt-28 mb-40 border border-slate-100">
+      <h2 style={{ fontStyle: 'normal' }} className="text-3xl font-black mb-10 tracking-tighter uppercase">
+        AR-BÂTI <span className="text-[#eee27d]">INQUIRY MANAGER</span>
+      </h2>
+      
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-separate border-spacing-y-2">
+          <thead>
+            <tr className="text-[11px] uppercase tracking-[0.2em] text-slate-400 font-black">
+              <th className="p-4">Type</th>
+              <th className="p-4">Client</th>
+              <th className="p-4">Project / Message</th>
+              <th className="p-4 text-center">Status</th>
+              <th className="p-4 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody className="text-[13px]">
+            {inquiries.length > 0 ? inquiries.map((item) => (
+              <tr key={item._id} className="bg-slate-50/50 hover:bg-slate-100 transition-all rounded-xl">
+                <td className="p-4 first:rounded-l-xl uppercase font-black text-[10px]">
+                  <span className={item.type === 'quote' ? 'text-blue-600' : 'text-slate-400'}>
+                    {item.type || 'Contact'}
+                  </span>
+                </td>
+                <td className="p-4">
+                  {/* Matches 'name' and 'surname' from your Devis form */}
+                  <div style={{ fontStyle: 'normal' }} className="font-bold text-slate-800">
+                    {item.fullName || `${item.name || ''} ${item.surname || ''}` || 'Guest User'}
+                  </div>
+                  <div style={{ fontStyle: 'normal' }} className="text-[11px] text-slate-400 font-bold">{item.email}</div>
+                </td>
+                <td className="p-4 max-w-md">
+                   <span style={{ fontStyle: 'normal' }} className="font-black text-[#1a1a1a] text-[10px] uppercase block mb-1">
+                    {item.siteType ? `${item.siteType} - ${item.propertyType}` : 'General Inquiry'}
+                  </span>
+                  <p style={{ fontStyle: 'normal' }} className="text-slate-600 font-medium leading-relaxed">
+                    {/* KEY FIX: Now correctly looking for 'comments' from your forms */}
+                    {item.comments || item.message || "No content provided."}
+                  </p>
+                </td>
+                <td className="p-4 text-center">
+                  <span style={{ fontStyle: 'normal' }} className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase border ${
+                    item.status === 'replied' 
+                    ? 'bg-green-100 text-green-700 border-green-200' 
+                    : 'bg-amber-100 text-amber-700 border-amber-200'
+                  }`}>
+                    {item.status || 'Pending'}
+                  </span>
+                </td>
+                <td className="p-4 text-right last:rounded-r-xl">
+                  <button className="bg-[#1a1a1a] text-white px-6 py-2 rounded-full font-black uppercase text-[10px] hover:bg-[#eee27d] hover:text-[#1a1a1a] transition-all shadow-md">
+                    Reply
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody className='divide-y divide-slate-50'>
-              {quotes.length > 0 ? (
-                quotes.map((quote) => (
-                  <tr key={quote._id} className='hover:bg-slate-50 transition-colors'>
-                    <td className='p-4'>
-                      <div className='font-bold text-slate-800'>{quote.name} {quote.surname}</div>
-                      <div className='text-xs text-slate-400'>{quote.email}</div>
-                    </td>
-                    <td className='p-4'>
-                      <span className='px-2 py-1 bg-[#eee27d]/20 text-[#1a1a1a] text-[10px] font-bold rounded uppercase'>
-                        {quote.siteType}
-                      </span>
-                    </td>
-                    <td className='p-4 text-sm text-slate-600'>{quote.location}</td>
-                    <td className='p-4 font-mono font-bold text-slate-700'>{quote.budget}</td>
-                    <td className='p-4 text-right'>
-                      <button 
-                        className='text-red-400 hover:text-red-600 transition-colors'
-                        onClick={() => handleDeleteQuote(quote._id)}
-                      >
-                        <FaTrash size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className='p-10 text-center text-slate-400 italic'>
-                    {loading ? "Loading inquiries..." : "No quote requests found."}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            )) : (
+              <tr><td colSpan="5" className="p-20 text-center font-black uppercase text-slate-300">No inquiries found in database</td></tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

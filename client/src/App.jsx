@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import SignUp from './pages/SignUp';
 import Profile from './pages/Profile';
@@ -11,13 +11,18 @@ import Footer from './components/Footer';
 import Services from './pages/Services';
 import Projects from './pages/Projects';
 import AdminDashboard from './pages/AdminDashboard';
-import AdminRoute from './components/AdminRoute'; // This is the bouncer we just made!
+import AdminRoute from './components/AdminRoute'; 
 import CreateProject from './pages/CreateProject';
 import Devis from './pages/Devis';
+import AdminInquiries from './components/AdminInquiries';
 
-export default function App() {
+// This sub-component handles the "Smart Padding" and Route logic
+function AppContent() {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
   return (
-    <BrowserRouter>
+    <div className={isHomePage ? "" : "pt-24 md:pt-28 min-h-screen bg-white"}>
       <Header />
       <Routes>
         {/* Public Routes */}
@@ -28,22 +33,33 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/services" element={<Services />} />
         <Route path="/projects" element={<Projects />} />
-       
+        <Route path="/devis" element={<Devis />} />
 
         {/* Regular User Private Routes */}
         <Route element={<PrivateRoute />}>
-          <Route path="/profile" element={<Profile />}  />
+          <Route path="/profile" element={<Profile />} />
         </Route>
 
-        {/* Admin Only Routes - Keep it inside <Routes>! */}
-        {/* Admin Only Routes */}
-<Route element={<AdminRoute />}>
-  <Route path='/admin-dashboard' element={<AdminDashboard />} />
-  <Route path='/create-project' element={<CreateProject />} />
-</Route>
-<Route path="/devis" element={<Devis />} />
+        {/* Admin Specific Private Routes */}
+        <Route element={<AdminRoute />}>
+          <Route path='/admin-dashboard' element={<AdminDashboard />} />
+          <Route path='/create-project' element={<CreateProject />} />
+          
+          {/* FIX: Combined Dashboard and Inbox routes here */}
+          <Route path="/dashboard" element={<AdminInquiries />} />
+          <Route path="/inbox" element={<AdminInquiries />} />
+          <Route path="/admin-inquiries" element={<AdminInquiries />} />
+        </Route>
       </Routes>
       <Footer />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }
